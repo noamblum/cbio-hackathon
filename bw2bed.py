@@ -12,9 +12,23 @@ threshold = args.threshold
 bw_path = args.input_file
 of_path = args.output_file
 
+id = 1
+
 with pyBigWig.open(bw_path) as bw, open(of_path, "w") as of:
     for chrom, len in bw.chroms().items():
         intervals = bw.intervals(chrom)
+        start = None
+        end = None
         for interval in intervals:
             if abs(interval[2]) > threshold:
-                of.write("{}\t{}\t{}\n".format(chrom, interval[0], interval[1]))
+                if start is None:
+                    start = interval[0]
+                    end = interval[1]
+                elif interval[0] == end:
+                    end = interval[1]
+                else:
+                    sign = "+" if interval[2] > 0 else "-"
+                    of.write(f"{chrom}\t{start}\t{end}\t{id}\t.\t{sign}\n")
+                    start = interval[0]
+                    end = interval[1]
+                    id += 1
