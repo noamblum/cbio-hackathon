@@ -1,0 +1,1 @@
+cmd = bed/Pou5f3.bed danRer11 motifs/ -size 100 -len 6 -preparsedDir .
