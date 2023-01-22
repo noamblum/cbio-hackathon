@@ -6,7 +6,7 @@ from numpy import average
 parser = argparse.ArgumentParser("Convert BigWig file to BED file")
 parser.add_argument("input_file", help="BigWig file to convert", type=str)
 parser.add_argument("output_file", help="Output file path", type=str)
-parser.add_argument("-t", "--threshold", help="Threshold for conversion", type=int, default=10, required=False)
+parser.add_argument("-t", "--threshold", help="Threshold for conversion", type=float, default=10, required=False)
 args = parser.parse_args()
 
 threshold = args.threshold
