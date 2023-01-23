@@ -1,1 +1,1 @@
-cmd = bed/Sox19b.bed danRer11 motifs/ -size 100 -len 6 -preparsedDir .
+cmd = bed/Sox19b.bed danRer11 ./sox_10_motifs -size 100 -len 10 -preparsedDir .
