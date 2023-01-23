@@ -1,1 +1,1 @@
-cmd = bed/Nanog.bed danRer11 motifs/ -size 100 -len 6 -preparsedDir .
+cmd = bed/Nanog.bed danRer11 ./motifs -size 100 -len 10 -preparsedDir .
