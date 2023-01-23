@@ -21,8 +21,14 @@ def ReadFile(path):
     #         array[i][3] = line[4]
 
 
-def Match(array_main, array_ref, PorS):
-    return pd.merge(array_main, array_ref, on=["chrom", "start", "end"], how="inner")
+def Match(array_main, array_ref, new_col):
+    df = pd.merge(array_main, array_ref, on=["chrom", "start", "end"], how="left", indicator="exists")
+    df[new_col] = np.where(df.exists == 'both', True, False)
+    for col in df.columns:
+        if col == "exists" or "mean" in col:
+            df.drop(col, axis=1, inplace=True)
+    return df
+
     # x = np.zeros((27986, 6), dtype=np.float64)
     # x[:, 0] = NanogData[:, 0]
     # x[:, 1] = NanogData[:, 1]
@@ -55,8 +61,14 @@ def main():
     nanog_data = ReadFile("data/bed/Nanog.bed")
     pouf_data = ReadFile("data/bed/Pou5f3.bed")
     sox_data = ReadFile("data/bed/Sox19b.bed")
-    Match(nanog_data, pouf_data, 'pou').to_csv("Nanog_Pou5f3_overlap.csv", index=False)
-    Match(nanog_data, sox_data, 'sox').to_csv("Nanog_Sox19b_overlap.csv", index=False)
+
+    nanog_data.rename(columns={"mean": "value"}, inplace=True)
+    nanog_data = Match(nanog_data, pouf_data, 'pouf')
+    nanog_data = Match(nanog_data, sox_data, 'sox')
+
+    nanog_data["count"] = nanog_data["pouf"].astype(int) + nanog_data["sox"].astype(int)
+
+    nanog_data.to_csv("nanog_overlap.csv", index=False)
 
 
 
