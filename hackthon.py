@@ -9,51 +9,54 @@ PouData = np.zeros((27985, 4), dtype=np.float64)
 SoxData = np.zeros((27985, 4), dtype=np.float64)
 
 
-def ReadFlie(path, array):
-    with open(path) as f:
-        file = csv.reader(f, delimiter="\t")
-        for i, line in enumerate(file):
-            array[i][0] = float(line[0][3:])
-            array[i][1] = line[1]
-            array[i][2] = line[2]
-            array[i][3] = line[4]
+def ReadFile(path):
+    df = pd.read_table(path, sep='\t', names=["chrom", "start", "end", "peak", "mean", "strand"])
+    return df[["chrom", "start", "end", "mean"]]
+    # with open(path) as f:
+    #     file = csv.reader(f, delimiter="\t")
+    #     for i, line in enumerate(file):
+    #         array[i][0] = float(line[0][3:])
+    #         array[i][1] = line[1]
+    #         array[i][2] = line[2]
+    #         array[i][3] = line[4]
 
 
-def Match(array1, array2, PorS):
-    x = np.zeros((27986, 6), dtype=np.float64)
-    x[:, 0] = NanogData[:, 0]
-    x[:, 1] = NanogData[:, 1]
-    x[:, 2] = NanogData[:, 2]
-    result = pd.DataFrame(x, columns=['name', 'startRange', 'endRange', 'pou', 'sox', 'count'])
-    for i in range(27985):
-        for j in range(27985):
-            if array1[i][0] == array2[j][0]:
-                # ---------------         Nanog
-                #        ---------------- PorS
-                if((array1[i][1]<array2[j][1]) & (array1[i][2]<array2[j][2]) & (array1[i][2]>array2[j][1])):
-                    result[PorS][j] = 1
-                #         --------------- Nanog
-                #---------------          PorS
-                elif((array1[i][1]>array2[j][1]) & (array1[i][2]>array2[j][2]) & (array1[i][1]<array2[j][2])):
-                    result[PorS][j] = 1
-                # ------------------------- Nanog
-                #      --------------       PorS
-                elif((array1[i][1]<array2[j][1]) & (array1[i][2]>array2[j][2])):
-                    result[PorS][j] = 1
-                #       --------------      Nanog
-                # ------------------------- PorS
-                elif ((array1[i][1]>array2[j][1]) & (array1[i][2]<array2[j][2])):
-                    result[PorS][j] = 1
-        print(i)
-    result.to_csv("data.csv")
+def Match(array_main, array_ref, PorS):
+    return pd.merge(array_main, array_ref, on=["chrom", "start", "end"], how="inner")
+    # x = np.zeros((27986, 6), dtype=np.float64)
+    # x[:, 0] = NanogData[:, 0]
+    # x[:, 1] = NanogData[:, 1]
+    # x[:, 2] = NanogData[:, 2]
+    # result = pd.DataFrame(x, columns=['name', 'startRange', 'endRange', 'pou', 'sox', 'count'])
+    # for i in range(27985):
+    #     for j in range(27985):
+    #         if array_main[i][0] == array_ref[j][0]:
+    #             # ---------------         Nanog
+    #             #        ---------------- PorS
+    #             if((array_main[i][1]<array_ref[j][1]) & (array_main[i][2]<array_ref[j][2]) & (array_main[i][2]>array_ref[j][1])):
+    #                 result[PorS][j] = 1
+    #             #         --------------- Nanog
+    #             #---------------          PorS
+    #             elif((array_main[i][1]>array_ref[j][1]) & (array_main[i][2]>array_ref[j][2]) & (array_main[i][1]<array_ref[j][2])):
+    #                 result[PorS][j] = 1
+    #             # ------------------------- Nanog
+    #             #      --------------       PorS
+    #             elif((array_main[i][1]<array_ref[j][1]) & (array_main[i][2]>array_ref[j][2])):
+    #                 result[PorS][j] = 1
+    #             #       --------------      Nanog
+    #             # ------------------------- PorS
+    #             elif ((array_main[i][1]>array_ref[j][1]) & (array_main[i][2]<array_ref[j][2])):
+    #                 result[PorS][j] = 1
+    #     print(i)
+    # result.to_csv("data.csv")
 
 
 def main():
-    ReadFlie("data\\bed\\Nanog.bed",NanogData)
-    ReadFlie("data\\bed\\Pou5f3.bed", PouData)
-    ReadFlie("data\\bed\\Sox19b.bed", SoxData)
-    Match(NanogData, PouData, 'pou')
-    Match(NanogData, SoxData, 'sox')
+    nanog_data = ReadFile("data/bed/Nanog.bed")
+    pouf_data = ReadFile("data/bed/Pou5f3.bed")
+    sox_data = ReadFile("data/bed/Sox19b.bed")
+    Match(nanog_data, pouf_data, 'pou').to_csv("Nanog_Pou5f3_overlap.csv", index=False)
+    Match(nanog_data, sox_data, 'sox').to_csv("Nanog_Sox19b_overlap.csv", index=False)
 
 
 
