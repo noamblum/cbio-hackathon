@@ -1,4 +1,3 @@
-
 from itertools import groupby
 from hmmlearn import hmm
 import numpy as np
@@ -8,13 +7,14 @@ SIZE_MOTIF = 10
 NUM_MOTIF = 1
 NUM_HIDDEN_STATES = 1 + (SIZE_MOTIF * NUM_MOTIF)
 NUM_EMISSIONS = 4
-MAX_NUM_ITER = 2
-NUM_TRAIN = 5
+MAX_NUM_ITER = 5
+NUM_TRAIN = 10
 A = 0
 C = 1
 G = 2
 T = 3
 
+list_prediction=[]
 
 # HIDDEN_STATES = [B, M1 , M2 , M3, M4, M5, M6, M7, M8, M9, M10]
 def initialize_p0_array():
@@ -25,7 +25,7 @@ def initialize_p0_array():
 
 # HIDDEN_STATES = [B, M1 , M2 , M3, M4, M5, M6, M7, M8, M9, M10]
 def initialize_emission_matrix():
-    motif = np.loadtxt("data/motifs/Nanog/homerResults/motif1.motif",
+    motif = np.loadtxt("data/motifs/Nanog/homerResults/motif2.motif",
                        comments=">")
 
     emission_matrix = np.zeros(shape=(NUM_HIDDEN_STATES, NUM_EMISSIONS))
@@ -93,13 +93,13 @@ def load_and_preprocess_fasta(filename):
     for header, orig_seq in fastaread(filename):
         seq = []
         for char in orig_seq:
-            if char == "A" or "a":
+            if char == "A" or char == "a":
                 seq.append([A])
-            elif char == "C" or "c":
+            elif char == "C" or char == "c":
                 seq.append([C])
-            elif char == "G" or "g":
+            elif char == "G" or char == "g":
                 seq.append([G])
-            elif char == "T" or "t":
+            elif char == "T" or char == "t":
                 seq.append([T])
         train_seqs += seq
         train_len_seqs.append(len(seq))
@@ -114,20 +114,22 @@ def train_hmm(nanog_motif_hmm, len_seqs, seqs):
         nanog_motif_hmm.transmat_[0, 1] = np.sum(
             nanog_motif_hmm.transmat_[0, 1:])
         nanog_motif_hmm.transmat_[0, 2:] = 0
+        print(nanog_motif_hmm.transmat_)
 
 def load_fasta_to_seqs_array(filename):
     seqs_array = []
     for header, orig_seq in fastaread(filename):
         seq = []
         for char in orig_seq:
-            if char == "A" or "a":
+            if char == "A" or char == "a":
                 seq.append([A])
-            elif char == "C" or "c":
+            elif char == "C" or char == "c":
                 seq.append([C])
-            elif char == "G" or "g":
+            elif char == "G" or char == "g":
                 seq.append([G])
-            elif char == "T" or "t":
+            elif char == "T" or char == "t":
                 seq.append([T])
+
 
         seqs_array.append(seq)
     return seqs_array
@@ -164,7 +166,7 @@ def main():
 
     train_hmm(nanog_motif_hmm, train_len_seqs, train_seqs)
 
-    prediction_output_file = "cpg_island_predictions.txt"
+    prediction_output_file = "nanog_motif_predictions.txt"
     likelihood_output_file = "likelihood.txt"
 
     list_prediction = write_decode_to_files(nanog_motif_hmm, likelihood_output_file,
