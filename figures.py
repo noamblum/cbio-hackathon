@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.stats import kruskal
+import scikit_posthocs as sp
 
 BLUE = "#3399FF"
 RED = "#FF3399"
@@ -28,6 +30,24 @@ if __name__ == '__main__':
         lambda x: ''.join(x.index[x]), axis=1)
 
     ###############bar plot################################
+    m1 = df.loc[df["CCATTARCAT"], "value"]
+    m2 = df.loc[df["CCAATCARNG"], "value"]
+    m3 = df.loc[df["TTAATAGCCC"], "value"]
+    _, pv = kruskal(m1,m2,m3)
+    post_hoc_pvalues = sp.posthoc_dunn([m1,m2,m3]) > 0.5
+    post_hoc_pvalues.to_html("posthoc.html")
+    fig, (ax0, ax1, ax2) = plt.subplots(nrows=1, ncols=3, figsize=(16,12), sharey=True, sharex=True)
+    fig.suptitle(f"ChIP-Seq Strength Differs Between Motifs\nKruskal-Wallis test p-value: {pv:.2E}", size=20)
+    fig.supxlabel("ChIP-Seq strength", fontsize=14)
+    fig.supylabel("# peaks density", fontsize=14)
+    ax0.set_title("Motif CCATTARCAT", fontdict={"size": 16})
+    ax1.set_title("Motif CCAATCARNG", fontdict={"size": 16})
+    ax2.set_title("Motif TTAATAGCCC", fontdict={"size": 16})
+    ax0.hist(m1, bins=100, density=True, range=(0,15))
+    ax1.hist(m2, bins=100, density=True, range=(0,15))
+    ax2.hist(m3, bins=100, density=True, range=(0,15))
+    fig.savefig("strength_distribution_by_motif.png")
+
     title = "Barplot of pick region with motif and without motif"
     motif_regions = df[df['motif'] != ""]
     count_motif_regions = len(motif_regions)
@@ -48,7 +68,7 @@ if __name__ == '__main__':
     plt.xlabel("Region Type")
     plt.ylabel("Count")
     plt.title(title)
-    plt.show()
+    #plt.show()
     plt.savefig("bar_plot_has_motif.png")
 
 
@@ -63,7 +83,7 @@ if __name__ == '__main__':
                   marker='o')
     plt.xlabel("Motifs")
     plt.title(title)
-    plt.show()
+    #plt.show()
     plt.savefig("box_plot.png")
 
 
@@ -105,7 +125,7 @@ if __name__ == '__main__':
     plt.xticks(ind, ('CCATTARCAT', 'CCAATCARNG', 'TTAATAGCCC'))
     plt.legend((p_sox,p_pouf,p_both), ('sox', 'pouf', 'both'))
 
-    plt.show()
+    #plt.show()
     plt.savefig("bar_plot_count.png")
 
 
@@ -120,7 +140,7 @@ if __name__ == '__main__':
     plt.xticks(ind, ('CCATTARCAT', 'CCAATCARNG', 'TTAATAGCCC'))
     plt.legend((p_sox,p_pouf,p_both), ('sox', 'pouf', 'both'))
 
-    plt.show()
+    #plt.show()
     plt.savefig("bar_plot_count.png")
 
 
@@ -140,7 +160,7 @@ if __name__ == '__main__':
     #                 bottom=sum(motif_protein_counts[motif][:i]),
     #                 color=colors[i])
     # # Show the plot
-    # plt.show()
+    # #plt.show()
 
 
 
@@ -172,7 +192,7 @@ if __name__ == '__main__':
     # plt.ylabel("Value")
     #
     # # show the plot
-    # plt.show()
+    # #plt.show()
     #
     # # fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))
     # # for i,df in enumerate([df_CCATTARCAT, df_CCAATCARNG, df_TTAATAGCCC]):
@@ -183,7 +203,7 @@ if __name__ == '__main__':
     # #                   marker='o', ax=ax[i])
     # # # plt.xlabel(["CCATTARCAT", "CCAATCARNG", "TTAATAGCCC"])
     # # plt.ylabel("Value")
-    # # plt.show()
+    # # #plt.show()
     #
     #
     #
@@ -203,7 +223,7 @@ if __name__ == '__main__':
     # # #               data=df, jitter=True, dodge=True, palette='pastel', size=5,
     # # #               marker='o')
     # # plt.title(title)
-    # # plt.show()
+    # # #plt.show()
     # # # filter the dataframe to only include rows where the CCATTARCAT is equal to True
     # # df_CCATTARCAT = df[df["CCATTARCAT"] == True]
     # #
@@ -223,7 +243,7 @@ if __name__ == '__main__':
     # # plt.ylabel("Value")
     # #
     # # # show the plot
-    # # plt.show()
+    # # #plt.show()
     # #
     #
     #
