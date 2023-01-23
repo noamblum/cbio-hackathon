@@ -13,6 +13,7 @@ if __name__ == '__main__':
     motif_num = 1
 
     for i in range(1, 4):
+        result_sequences = []  # get results from hmm file
         with open(f"nanog_motif_predictions{i}.txt") as file:
             lines = file.readlines()
             for line in lines:
