@@ -10,17 +10,21 @@ if __name__ == '__main__':
 
     # Prepare the data
     data = {
-           'motifA': [True, True, False, True, True, True],
-            'motifB': [False, True, False, False, True, True],
-            'motifC': [True, False, False, False, False, True],
+           'CCATTARCAT': [True, True, False, True, True, True],
+            'CCAATCARNG': [False, True, False, False, True, True],
+            'TTAATAGCCC': [True, False, False, False, False, True],
             'sox': [False, False, False, True, False, True],
             'pouf': [True, False, True, False, False, True],
             'value': [15, 30, 8, 12, 5, 11],
-            'number_of_pro': [1,2,3,2,2,1]}
-    df = pd.DataFrame(data)
-
+            'count': [1,2,3,2,2,1]}
+    # df = pd.DataFrame(data)
+    df = pd.read_csv("processed_data.csv")
+    print(df.columns)
+    df.rename(columns = {'has_motif_CCATTARCAT': 'CCATTARCAT',
+                         'has_motif_CCAATCARNG': 'CCAATCARNG',
+                         'has_motif_TTAATAGCCC' : 'TTAATAGCCC'}, inplace=True)
     # create a dataframe with the regions that have a motif
-    df['motif'] = df[['motifA', 'motifB', 'motifC']].apply(
+    df['motif'] = df[['CCATTARCAT', 'CCAATCARNG', 'TTAATAGCCC']].apply(
         lambda x: ''.join(x.index[x]), axis=1)
 
     ###############bar plot################################
@@ -54,7 +58,7 @@ if __name__ == '__main__':
     title = "Box plot"
     sns.boxplot(x='motif', y='value',
                 data=df, palette='pastel')
-    sns.stripplot(x='motif', y='value', hue='number_of_pro',
+    sns.stripplot(x='motif', y='value', hue='count',
                   data=df, jitter=True, dodge=True, palette='pastel', size=5,
                   marker='o')
     plt.xlabel("Motifs")
@@ -66,14 +70,21 @@ if __name__ == '__main__':
     ###############bar plot2################################
 
     # Create a bar for the total number of true values
-    motifs = ["motifA", "motifB", "motifC"]
+    motifs = ["CCATTARCAT", "CCAATCARNG", "TTAATAGCCC"]
     proteins = ["sox", "pouf"]
 
-    motif_total_count = []
+    motif_total_count = [] # number of picks for each motif [2,0]
+    motif_vs_motif_total_count = [] # number of picks for each motif [2,2]
+    motif_vs_all_motifs_total_count = (df['CCATTARCAT'].astype(int) + df['CCAATCARNG'].astype(int) + df['TTAATAGCCC'].astype(int)).count()
     motif_both_proteins_counts = []
+
     for motif in motifs:
         motif_total_count.append(df.query(f'{motif} == True').shape[0])
         motif_both_proteins_counts.append(df.query(f'{motif} == True & sox == True & pouf == True').shape[0])
+        motif_vs_motif = []
+        for motif in motifs:
+            motif_vs_motif.append(df.query(f'{motif} == True & {motif} == True').shape[0] - motif_vs_all_motifs_total_count)
+        motif_vs_motif_total_count.append(motif_vs_motif)
 
     prob_count = []
     for protein in proteins:
@@ -88,9 +99,25 @@ if __name__ == '__main__':
     p_sox = plt.bar(ind, prob_count[0], width, color=RED)
     p_pouf = plt.bar(ind, prob_count[1], width, bottom=prob_count[0], color=BLUE)
     p_both = plt.bar(ind, motif_both_proteins_counts, width, bottom=[i+j for i, j in zip(prob_count[0], prob_count[1])], color=PURPLE)
-    plt.ylabel('number of picks')
+    plt.ylabel('Number of picks')
+    plt.xlabel('Motif seq')
     plt.title('number of picks with sox and pouf  for each motif of nanog')
-    plt.xticks(ind, ('motifA', 'motifB', 'motifC'))
+    plt.xticks(ind, ('CCATTARCAT', 'CCAATCARNG', 'TTAATAGCCC'))
+    plt.legend((p_sox,p_pouf,p_both), ('sox', 'pouf', 'both'))
+
+    plt.show()
+    plt.savefig("bar_plot_count.png")
+
+
+
+
+    fig = plt.subplots(figsize=(10, 7))
+    CCATTARCAT = plt.bar(ind, motif_vs_motif[0], width, color=RED)
+    CCAATCARNG = plt.bar(ind, motif_vs_motif[1], width, bottom=motif_vs_motif[0], color=BLUE)
+    # TTAATAGCCC = plt.bar(ind,  motif_vs_motif[2], width, bottom=[i+j for i, j in zip(motif_vs_motif[0], motif_vs_motif[1])], color=PURPLE)
+    plt.ylabel('number of picks')
+    plt.title('number of picks for each motif')
+    plt.xticks(ind, ('CCATTARCAT', 'CCAATCARNG', 'TTAATAGCCC'))
     plt.legend((p_sox,p_pouf,p_both), ('sox', 'pouf', 'both'))
 
     plt.show()
@@ -99,13 +126,13 @@ if __name__ == '__main__':
 
     #
     #
-    # motif_counts = df[df['motifA'] == True].count()
+    # motif_counts = df[df['CCATTARCAT'] == True].count()
     # motif_counts = df[df == True].count()
     #
-    # motif_protein_counts = df.groupby(["motifA", "motifB", "motifC"])[
+    # motif_protein_counts = df.groupby(["CCATTARCAT", "CCAATCARNG", "TTAATAGCCC"])[
     #     "number_of_pro"].value_counts().unstack(fill_value=0)
     # colors = cm.rainbow(np.linspace(0, 1, 4))
-    # for motif in ["motifA", "motifB", "motifC"]:
+    # for motif in ["CCATTARCAT", "CCAATCARNG", "TTAATAGCCC"]:
     #     plt.bar(motif, motif_counts[motif], color='gray')
     #     # Create bars for the number of true values for each protein count
     #     for i in range(4):
@@ -118,17 +145,17 @@ if __name__ == '__main__':
 
 
     #
-    # # filter the dataframe to only include rows where the motifA is equal to True
-    # df_motifA = df[df["motifA"] == True]
+    # # filter the dataframe to only include rows where the CCATTARCAT is equal to True
+    # df_CCATTARCAT = df[df["CCATTARCAT"] == True]
     #
-    # # filter the dataframe to only include rows where the motifB is equal to True
-    # df_motifB = df[df["motifB"] == True]
+    # # filter the dataframe to only include rows where the CCAATCARNG is equal to True
+    # df_CCAATCARNG = df[df["CCAATCARNG"] == True]
     #
-    # # filter the dataframe to only include rows where the motifC is equal to True
-    # df_motifC = df[df["motifC"] == True]
+    # # filter the dataframe to only include rows where the TTAATAGCCC is equal to True
+    # df_TTAATAGCCC = df[df["TTAATAGCCC"] == True]
     #
     # # concatenate the three dataframe
-    # df_motifs = pd.concat([df_motifA, df_motifB, df_motifC])
+    # df_motifs = pd.concat([df_CCATTARCAT, df_CCAATCARNG, df_TTAATAGCCC])
     #
     # # create the boxplot
     # bp = sns.boxplot(x="motif", y="value", hue="number_of_pro",
@@ -148,13 +175,13 @@ if __name__ == '__main__':
     # plt.show()
     #
     # # fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))
-    # # for i,df in enumerate([df_motifA, df_motifB, df_motifC]):
+    # # for i,df in enumerate([df_CCATTARCAT, df_CCAATCARNG, df_TTAATAGCCC]):
     # #     sns.boxplot(y='value',
     # #                 data=df, palette='pastel', ax=ax[i])
     # #     sns.stripplot(y='value', hue='number_of_pro',
     # #                   data=df, jitter=True, dodge=True, palette='pastel', size=5,
     # #                   marker='o', ax=ax[i])
-    # # # plt.xlabel(["MotifA", "MotifB", "MotifC"])
+    # # # plt.xlabel(["CCATTARCAT", "CCAATCARNG", "TTAATAGCCC"])
     # # plt.ylabel("Value")
     # # plt.show()
     #
@@ -163,7 +190,7 @@ if __name__ == '__main__':
     #
     # # title = "Box plot"
     # #
-    # # motifs = ['motifA', 'motifB', 'motifC']
+    # # motifs = ['CCATTARCAT', 'CCAATCARNG', 'TTAATAGCCC']
     # # for motif in motifs:
     # #     sns.boxplot(x=motif, y='value', hue='number_of_pro',
     # #                 data=df, showfliers=True)
@@ -177,12 +204,12 @@ if __name__ == '__main__':
     # # #               marker='o')
     # # plt.title(title)
     # # plt.show()
-    # # # filter the dataframe to only include rows where the motifA is equal to True
-    # # df_motifA = df[df["motifA"] == True]
+    # # # filter the dataframe to only include rows where the CCATTARCAT is equal to True
+    # # df_CCATTARCAT = df[df["CCATTARCAT"] == True]
     # #
-    # # # create the boxplot for motifA
-    # # bp = sns.boxplot(x="motifA", y="value",
-    # #                  hue="number_of_pro", data=df_motifA,
+    # # # create the boxplot for CCATTARCAT
+    # # bp = sns.boxplot(x="CCATTARCAT", y="value",
+    # #                  hue="number_of_pro", data=df_CCATTARCAT,
     # #                  showfliers=True, fliersize=2)
     # #
     # # # loop through the box, whiskers and caps of the boxplot and adjust the color and transparency
@@ -191,8 +218,8 @@ if __name__ == '__main__':
     # #     patch.set_facecolor((r, g, b, .3))
     # #
     # # # add title and axis labels
-    # # plt.title("MotifA")
-    # # plt.xlabel("MotifA")
+    # # plt.title("CCATTARCAT")
+    # # plt.xlabel("CCATTARCAT")
     # # plt.ylabel("Value")
     # #
     # # # show the plot
