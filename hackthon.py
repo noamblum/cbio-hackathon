@@ -68,7 +68,17 @@ def main():
 
     nanog_data["count"] = nanog_data["pouf"].astype(int) + nanog_data["sox"].astype(int)
 
-    nanog_data.to_csv("nanog_overlap.csv", index=False)
+    motif_1_df = pd.read_csv("find_motif_in_seq-motif1-CCATTARCAT.csv")
+    motif_2_df = pd.read_csv("find_motif_in_seq-motif2-CCAATCARNG.csv")
+    motif_3_df = pd.read_csv("find_motif_in_seq-motif3-TTAATAGCCC.csv")
+
+    for motif, motif_df in zip(("CCATTARCAT","CCAATCARNG","TTAATAGCCC"),(motif_1_df, motif_2_df, motif_3_df)):
+        nanog_data[f"has_motif_{motif}"] = motif_df["has_motif"]
+        nanog_data[f"{motif}_start"] = motif_df["start"]
+        nanog_data[f"{motif}_end"] = motif_df["end"]
+        nanog_data.loc[~nanog_data[f"has_motif_{motif}"], f"{motif}_start"] = -1
+
+    nanog_data.to_csv("processed_data.csv", index=False)
 
 
 
